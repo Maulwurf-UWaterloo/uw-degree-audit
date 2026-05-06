@@ -1,14 +1,22 @@
 "use client";
 import { evaluate } from "@/lib/evaluator";
-import { mathMajorRequirements } from "@/lib/plans/math-major";
+import { pmathMajorRequirements } from "@/lib/plans/pmath-major";
 import { sampleTranscript } from "@/data/sample-transcript";
-import { EvalResult } from "@/lib/types";
+import { EvalResult, Status } from "@/lib/types";
+
+function statusIcon(status: Status): string {
+  switch (status) {
+    case "completed": return "✅";
+    case "in-progress": return "🟡";
+    case "not-met": return "⬜";
+  }
+}
 
 function ReqNode({ result, depth = 0 }: { result: EvalResult; depth?: number }) {
   return (
     <div style={{ marginLeft: depth * 20 }} className="my-1">
       <div className="flex items-center gap-2">
-        <span>{result.satisfied ? "✅" : "⬜"}</span>
+        <span>{statusIcon(result.status)}</span>
         <span className="font-medium">{result.label}</span>
         <span className="text-sm text-gray-500">— {result.detail}</span>
       </div>
@@ -20,7 +28,7 @@ function ReqNode({ result, depth = 0 }: { result: EvalResult; depth?: number }) 
 }
 
 export default function Home() {
-  const result = evaluate(mathMajorRequirements, sampleTranscript.courses);
+  const result = evaluate(pmathMajorRequirements, sampleTranscript.courses);
   return (
     <main className="p-8 max-w-3xl mx-auto">
       <h1 className="text-2xl font-bold mb-4">UW Degree Audit (alpha)</h1>

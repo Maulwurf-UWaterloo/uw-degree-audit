@@ -35,5 +35,16 @@ export const mathMajorRequirements: Requirement = {
         { kind: "course", code: "CO 250" },
       ],
     },
+    {
+      kind: "average",
+      label: "Major Average (≥60)",
+      min: 60,
+      over: [
+        { kind: "course", code: "MATH 135" },
+        { kind: "course", code: "MATH 136" },
+        { kind: "course", code: "MATH 137" },
+        { kind: "course", code: "MATH 138" },
+      ],
+    }
   ],
 };

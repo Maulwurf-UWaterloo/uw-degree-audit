@@ -18,15 +18,13 @@ export type Requirement =
   | { kind: "count"; label: string; min: number; from: Requirement[] }
   | { kind: "average"; label: string; min: number; over: Requirement[] };
 
+// NEW
+export type Status = "completed" | "in-progress" | "not-met";
+
 export type EvalResult = {
-  satisfied: boolean;
+  status: Status;          // CHANGED — was: satisfied: boolean
   progress: number;
   label: string;
   detail: string;
   children?: EvalResult[];
-}
-
-const r1: { kind: "course"; code: string; minGrade?: number } = {
-  kind: "course",
-  code: "MATH 135"
 };
