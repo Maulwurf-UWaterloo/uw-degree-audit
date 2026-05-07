@@ -2,6 +2,8 @@
 
 > Interactive degree-requirement checker and what-if simulator for University of Waterloo students.
 
+🔗 **Live demo**: [uw-degree-audit.vercel.app](https://uw-degree-audit.vercel.app)
+
 UW's official degree audit (Quest) is hard to read, doesn't show progress visually, and can't answer "what if I drop this course?" or "what if I switch from Math to AMATH?". This project does.
 
 ![Demo: interactive degree audit](docs/demo.gif)
