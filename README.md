@@ -4,7 +4,7 @@
 
 UW's official degree audit (Quest) is hard to read, doesn't show progress visually, and can't answer "what if I drop this course?" or "what if I switch from Math to AMATH?". This project does.
 
-![Screenshot of the audit UI](docs/screenshot.png)
+![Demo: interactive degree audit](docs/demo.gif)
 
 ## Why this exists
 
@@ -16,6 +16,7 @@ Every term, thousands of UW students manually cross-reference their unofficial t
 - Hierarchical view of every degree requirement with live progress
 - Supports `AND`, `OR`, "N-of-M" cardinality, and minimum-grade constraints
 - In-progress courses (no grade yet) are first-class citizens
+- **What-if simulator** — toggle any course's status (taken / in-progress / not-taken) and watch requirements re-evaluate in real time
 - Privacy-first: nothing leaves your browser
 
 ## Tech stack
