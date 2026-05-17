@@ -1,4 +1,5 @@
 import { Requirement } from "../types";
+import { bmathFoundation } from "./bmath-foundation";
 
 // Pure Mathematics (Bachelor of Mathematics — Honours) Plan Requirements
 // Source: UW Academic Calendar, Pure Mathematics page (2026 catalog)
@@ -51,6 +52,7 @@ export const pmathMajorRequirements: Requirement = {
   kind: "and",
   label: "Pure Mathematics (Honours) — Plan Requirements",
   children: [
+    bmathFoundation, 
     {
       kind: "and",
       label: "PMATH Core (all 5 required)",

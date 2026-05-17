@@ -1,35 +1,36 @@
 # UW Degree Audit
 
-> Interactive degree-requirement checker and what-if simulator for University of Waterloo students.
+Interactive degree-requirement audit for UWaterloo Math Faculty students — built to fill the gaps in Quest (no progress tracking, no what-if scenarios). Fully client-side and privacy-preserving: no backend, no database, no user data leaves the browser.
 
-🔗 **Live demo**: [uw-degree-audit.vercel.app](https://uw-degree-audit.vercel.app)
+![Demo](docs/demo.gif)
 
-UW's official degree audit (Quest) is hard to read, doesn't show progress visually, and can't answer "what if I drop this course?" or "what if I switch from Math to AMATH?". This project does.
+**[Live demo](https://uw-degree-audit.vercel.app)**  ·  Built with Next.js, TypeScript, Tailwind
 
-![Demo: interactive degree audit](docs/demo.gif)
+---
 
-## Why this exists
+## Why
 
-Every term, thousands of UW students manually cross-reference their unofficial transcripts against the undergraduate calendar to check if they're on track to graduate. Quest gives you a yes/no per requirement; it doesn't show you *how close* you are, what's missing, or what changes if your plan changes. This tool fills that gap.
+UWaterloo's official degree-audit tool (Quest) has three frustrating gaps:
+
+- No visual progress tracking — you can't tell at a glance how close you are to graduating
+- No what-if scenarios — "if I drop this course, am I still on track?" requires manually reading the catalog
+- No support for exploring alternative plans — switching from one major to another means starting over
+
+This tool fills those gaps for the Math Faculty's three most common Honours plans.
 
 ## Features
 
-- Parse-free: paste or hand-enter your courses, see your status in seconds
-- Hierarchical view of every degree requirement with live progress
-- Supports `AND`, `OR`, "N-of-M" cardinality, and minimum-grade constraints
-- In-progress courses (no grade yet) are first-class citizens
-- **What-if simulator** — toggle any course's status (taken / in-progress / not-taken) and watch requirements re-evaluate in real time
-- Privacy-first: nothing leaves your browser
+**Three plan support** — Pure Mathematics, Computer Science (BMath), and Statistics. Each is modeled from the real UW Academic Calendar with the BMath foundation requirements shared across all three.
 
-## Tech stack
+**Real-time what-if engine** — Click any course to cycle its status (`Not taken` → `Completed` → `In progress`). The entire requirement tree re-evaluates instantly across a three-state model. Original transcript grades are restored when toggling a course back to completed.
 
-- **Next.js 14** (App Router) + **TypeScript** + **Tailwind CSS**
-- Pure client-side: no backend, no database, no tracking
-- Deployed on Vercel
+**Filter to focus** — A toggle hides completed requirements so you only see what's left.
 
-## Design highlights
+**Privacy-first** — All transcript data lives in your browser session. No backend, no database, no analytics, no tracking.
 
-The core of this project is a **recursive AST** that represents UWaterloo's degree requirements as a typed expression tree. Each node is one of five constructors:
+## Architecture
+
+The core abstraction is a **recursive AST** with 5 typed node constructors:
 
 ```typescript
 type Requirement =
@@ -40,37 +41,91 @@ type Requirement =
   | { kind: "average"; label: string; min: number; over: Requirement[] };
 ```
 
-Evaluation is a **structural recursion** over the tree — about 60 lines of TypeScript handle arbitrarily deep nesting. Adding a new requirement type is one line in the union plus one `case` in the evaluator; TypeScript's exhaustiveness checking flags every spot that needs an update.
+A ~160-line structural-recursion evaluator walks this tree against a transcript, producing a parallel `EvalResult` tree with a **three-state status model** (`completed` / `in-progress` / `not-met`).
 
-The UI mirrors the data structure: a recursive React component renders the recursive `EvalResult` tree, with depth-driven indentation and per-node satisfaction state.
+The evaluator leverages TypeScript's **discriminated unions and exhaustiveness checking** — adding a new requirement kind forces every dependent `switch` arm to update at compile time. This is what makes adding a new plan or refactoring a status model safe across the whole codebase.
 
-## Project status
+The progress semantics are intentionally conservative: an `in-progress` course contributes `0` to progress, not `0.5`. Until a grade is in hand, the course could still be dropped or failed, so claiming partial completion would mislead.
 
-Active development. Currently supported:
+## Plans
 
-- ✅ Math Major (partial — Core 1A/1B, Communication Skills, Upper-Year Math)
-- 🚧 Math Major (full)
-- 🚧 PDF transcript upload (client-side parsing via pdfjs-dist)
-- 🚧 What-if simulator (drop / add courses, switch plans)
-- 🚧 Plan comparison (e.g. Math Major vs. AMATH Major)
+Each plan lives in its own file under `lib/plans/`, modeled from the UW catalog:
 
-## Getting started
+- `pmath-major.ts` — Pure Mathematics (Honours)
+- `cs-major.ts` — Computer Science (BMath Honours)
+- `stats-major.ts` — Statistics (BMath Honours)
+- `bmath-foundation.ts` — Shared degree-level foundation (MATH 135/136/137/138, first-year CS, STAT 230, Communication Part 1)
 
-Requires Node.js 18+.
+The `bmath-foundation` module is composed into all three plans, so any 1A/1B course you've completed counts toward every plan you might switch to.
+
+## Limitations
+
+The current `Requirement` type system intentionally cannot express:
+
+1. **Wildcard / range matching** — "any CS 400-level course". Worked around with hand-maintained course lists.
+2. **Unit-based counting** — "13.75 units of math". Not modeled.
+3. **Subject-code / faculty filters** — "1.0 unit from Faculty of Arts". Elective Requirements not modeled.
+4. **Course consumption** — A single course can satisfy multiple requirements (no tracking of "used").
+5. **Substitution rules** — Double-degree substitutes (STAT 371 → STAT 331, etc.) not modeled.
+6. **Negative constraints** — "STAT 334 is not an acceptable substitute". Forbidden courses simply excluded from option lists.
+
+Every limitation is flagged with a `TODO:` or `NOT MODELED:` comment in the plan files, so the audit is honest about what it can and can't check. **Always verify graduation status against Quest before making real decisions.**
+
+## Tech stack
+
+| | |
+|---|---|
+| Framework | Next.js 14 (App Router) |
+| Language | TypeScript (strict mode) |
+| Styling | Tailwind CSS |
+| Testing | Jest + ts-jest (36 tests covering all 5 evaluator cases) |
+| Deployment | Vercel |
+
+## Local development
 
 ```bash
-git clone git@github.com:Maulwurf-UWaterloo/uw-degree-audit.git
+git clone https://github.com/Maulwurf-UWaterloo/uw-degree-audit.git
 cd uw-degree-audit
 npm install
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000).
+Open [localhost:3000](http://localhost:3000).
+
+Run tests:
+
+```bash
+npx jest
+```
+
+## Project structure
+
+```
+app/
+  page.tsx                  # Main UI: header, plan switcher, summary card, tree view
+  layout.tsx
+lib/
+  types.ts                  # Requirement, Course, EvalResult types
+  evaluator.ts              # Structural-recursion evaluator (~160 lines)
+  evaluator.test.ts         # 36 Jest tests covering all 5 node kinds
+  plans/
+    index.ts                # Plan registry
+    bmath-foundation.ts     # Shared BMath degree-level foundation
+    pmath-major.ts
+    cs-major.ts
+    stats-major.ts
+data/
+  sample-transcript.ts      # Personal transcript (toggle-able courses)
+```
 
 ## Disclaimer
 
-Not affiliated with the University of Waterloo. For unofficial planning only — always verify graduation requirements with your academic advisor.
+Not affiliated with the University of Waterloo. Plan data is modeled from public catalog information and is best-effort — always verify against Quest before making graduation decisions.
 
 ## Author
 
-Built by Wu Tung-li ([@Maulwurf-UWaterloo](https://github.com/Maulwurf-UWaterloo)) — Math, UWaterloo 2A.
+Built by Wu Tung-li ([@Maulwurf-UWaterloo](https://github.com/Maulwurf-UWaterloo)) — UWaterloo Math, 2A.
+
+## License
+
+MIT
